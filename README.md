@@ -6,6 +6,7 @@ To get started:
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
+pre-commit install
 ```
 
 Fill in `credentials-template.yaml` with the [key and secret for this app](https://portal.apis.huit.harvard.edu/my-apps/6dce5383-bcb6-4c9f-bd14-8f59d356b221), and then copy into place:
