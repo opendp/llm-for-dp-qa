@@ -3,21 +3,20 @@ import requests
 from pathlib import Path
 import json
 
-if __name__ == '__main__':
+def ask(question, model="gpt-4o-mini", temperature=0.7):
     credentials = safe_load((Path(__file__).parent / 'credentials.yaml').open())
     key = credentials['key']
-    secret = credentials['secret']
 
     url = "https://go.apis.huit.harvard.edu/ais-openai-direct-limited-schools/v1/chat/completions"
     payload = json.dumps({
-        "model": "gpt-4o-mini",
+        "model": model,
         "messages": [
         {
             "role": "user",
-            "content": "What is 2+2?"
+            "content": question
         }
         ],
-        "temperature": 0.7
+        "temperature": temperature
     })
     headers = {
         'Content-Type': 'application/json',
@@ -25,6 +24,15 @@ if __name__ == '__main__':
     }
     response = requests.request("POST", url, headers=headers, data=payload)
     response.raise_for_status()
-    print(response.text)
+    response_json = response.json()
+    answers = [
+        choice['message']['content'] for choice in response_json['choices']
+    ]
+    return answers
+
+
+if __name__ == '__main__':
+    answers = ask('What is the capital of Georgia?')
+    print(answers)
 
 
