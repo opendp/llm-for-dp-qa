@@ -2,6 +2,8 @@ from yaml import safe_load, dump
 import requests
 from pathlib import Path
 import json
+import re
+from datetime import datetime
 
 def ask(question, model="gpt-4o-mini", temperature=0.7):
     credentials = safe_load((Path(__file__).parent / 'credentials.yaml').open())
@@ -11,10 +13,10 @@ def ask(question, model="gpt-4o-mini", temperature=0.7):
     payload = json.dumps({
         "model": model,
         "messages": [
-        {
-            "role": "user",
-            "content": question
-        }
+            {
+                "role": "user",
+                "content": question
+            }
         ],
         "temperature": temperature
     })
@@ -32,7 +34,18 @@ def ask(question, model="gpt-4o-mini", temperature=0.7):
 
 
 if __name__ == '__main__':
-    answers = ask('What is the capital of Georgia?')
-    print(answers)
+    q_and_a_in = safe_load((Path(__file__).parent / 'q-and-a.yaml').open())
+    q_and_a_out = []
+    for question in q_and_a_in:
+        answers = ask(question)
+        q_and_a_out.append({
+            'q': question,
+            'a': answers,
+        })
+    yaml_out = dump(q_and_a_out)
+    print(yaml_out)
+    timestamp = re.sub(r'\..*', '', datetime.now().isoformat()).replace(':', '-')
+    out_path = Path(__file__).parent / 'outputs' / f'{timestamp}.yaml'
+    out_path.write_text(yaml_out)
 
 
