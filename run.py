@@ -42,7 +42,7 @@ if __name__ == '__main__':
             'q': question,
             'a': answers,
         })
-    yaml_out = dump(q_and_a_out)
+    yaml_out = dump(q_and_a_out, sort_keys=False, allow_unicode=True, default_flow_style=False)
     print(yaml_out)
     timestamp = re.sub(r'\..*', '', datetime.now().isoformat()).replace(':', '-')
     out_path = Path(__file__).parent / 'outputs' / f'{timestamp}.yaml'
