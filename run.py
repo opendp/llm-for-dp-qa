@@ -89,49 +89,44 @@ Considering the response above, answer the following question with "yes" or "no"
     return ask_one_question(question_answer_evaluation, model, temperature)
 
 
+def evaluate(question, answer, evaluations_in):
+    evaluations_out = []
+    for expected in [True, False]:
+        for evaluation in evaluations_in[expected]:
+            actual, _runtime = ask_evaluation(question, answer, evaluation)
+            evaluations_out.append(
+                {
+                    "evalution": evaluation,
+                    "expected": expected,
+                    "actual": actual,
+                }
+            )
+    return evaluations_out
+
+
 def ask_all_questions(config):
     q_and_a_in = load_yaml("q-and-a.yaml")
     q_and_a_out = []
     for q_a in q_and_a_in:
         question = q_a["Q"]
+
         human_answers = q_a["A"]
-        human_answers_evaluation = []
+        human_answers_evaluation = {}
         for answer in human_answers:
-            breakpoint()
-            evaluation_true = q_a["evaluation"][True]
-            for evaluation in evaluation_true:
-                response, _runtime = ask_evaluation(question, answer, evaluation)
-                human_answers_evaluation.append(
-                    {"evalution": evaluation, "expected": True, "actual": response}
-                )
-            evaluation_false = q_a["evaluation"][False]
-            for evaluation in evaluation_false:
-                response, _runtime = ask_evaluation(question, answer, evaluation)
-                human_answers_evaluation.append(
-                    {"evalution": evaluation, "expected": False, "actual": response}
-                )
+            evaluation = evaluate(question, answer, q_a["evaluations"])
+            human_answers_evaluation[answer] = evaluation
 
         llm_answers, runtime = ask_one_question(question, **config)
-        llm_answers_evaluation = []
+        llm_answers_evaluation = {}
         for answer in llm_answers:
-            evaluation_true = q_a["evaluation"][True]
-            for evaluation in evaluation_true:
-                response, _runtime = ask_evaluation(question, answer, evaluation)
-                llm_answers_evaluation.append(
-                    {"evalution": evaluation, "expected": True, "actual": response}
-                )
-            evaluation_false = q_a["evaluation"][False]
-            for evaluation in evaluation_false:
-                response, _runtime = ask_evaluation(question, answer, evaluation)
-                llm_answers_evaluation.append(
-                    {"evalution": evaluation, "expected": False, "actual": response}
-                )
+            evaluation = evaluate(question, answer, q_a["evaluations"])
+            llm_answers_evaluation[answer] = evaluation
 
         q_and_a_out.append(
             {
                 "question": question,
-                "human_answers": human_answers_evaluation,
-                "llm_answers": llm_answers_evaluation,
+                "human": human_answers_evaluation,
+                "llm": llm_answers_evaluation,
                 "runtime": str(runtime),
             }
         )
