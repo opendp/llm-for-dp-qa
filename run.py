@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from yaml import safe_load, dump
 import requests
 from pathlib import Path
@@ -5,12 +6,17 @@ import json
 import re
 from datetime import datetime
 import subprocess
+import argparse
 
 
-def get_config(model="gpt-4o-mini", temperature=0):
+def get_config():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--model", default="gpt-4o-mini")
+    parser.add_argument("--temperature", type=float, default=0)
+    args = parser.parse_args()
     return {
-        "model": model,
-        "temperature": temperature,
+        "model": args.model,
+        "temperature": args.temperature,
     }
 
 
@@ -56,8 +62,7 @@ def ask(question, model, temperature):
     return answers
 
 
-if __name__ == "__main__":
-    config = get_config()
+def ask_all_questions(config):
     q_and_a_in = load_yaml("q-and-a.yaml")
     q_and_a_out = []
     for q_a in q_and_a_in:
@@ -69,25 +74,35 @@ if __name__ == "__main__":
         q_and_a_out.append(
             {
                 "question": question,
-                "human answer": human_answer,
-                "llm answers": llm_answers,
+                "human_answer": human_answer,
+                "llm_answers": llm_answers,
                 "runtime": str(end_time - start_time),
             }
         )
+    return q_and_a_out
 
-    datetime_now = datetime.now()
-    metadata = {
-        "config": config,
-        "git_hash": get_git_hash(),
-        "datetime": datetime_now.isoformat(),
-    }
+
+def save_results(datetime_now, results):
     yaml_out = dump(
-        {"metadata": metadata, "q_and_a": q_and_a_out},
+        results,
         sort_keys=False,
         allow_unicode=True,
         default_flow_style=False,
     )
     print(yaml_out)
-    timestamp = re.sub(r"\..*", "", datetime_now.isoformat()).replace(":", "-")
+    timestamp = re.sub(r"\..*", "", datetime_now).replace(":", "-")
     out_path = Path(__file__).parent / "outputs" / f"{timestamp}.yaml"
     out_path.write_text(yaml_out)
+
+
+if __name__ == "__main__":
+    config = get_config()
+    datetime_now = datetime.now().isoformat()
+    metadata = {
+        "config": config,
+        "datetime": datetime_now,
+        "git_hash": get_git_hash(),
+    }
+    q_and_a = ask_all_questions(config)
+    results = {"metadata": metadata, "q_and_a": q_and_a}
+    save_results(datetime_now, results)
