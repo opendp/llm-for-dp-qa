@@ -1,0 +1,22 @@
+metadata:
+  config:
+    model: gpt-4o-mini
+    temperature: 0
+  git_hash: cdb186f
+  datetime: '2025-01-16T15:57:55.953321'
+q_and_a:
+- question: In a few words, what is differential privacy?
+  human answer: 'Differential privacy is a rigorous mathematical definition of privacy.
+    Consider an algorithm that analyzes a dataset and releases statistics: The algorithm
+    is differentially private if by looking at the output, you cannot tell whether
+    any individual''s data was included in the original dataset or not. Differential
+    privacy achieves this by carefully injecting random noise into the released statistics
+    to hide the effects of each individual.
+
+    '
+  llm answers:
+  - Differential privacy is a mathematical framework that ensures the privacy of individuals
+    in a dataset by adding noise to the data or query results, making it difficult
+    to identify any individual's information while still allowing for useful aggregate
+    insights.
+  runtime: '0:00:03.099645'
