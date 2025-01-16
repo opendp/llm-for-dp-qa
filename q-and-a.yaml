@@ -1,10 +1,11 @@
 -
   Q: In a few words, what is differential privacy?
-  A: |
-    Differential privacy is a rigorous mathematical definition of privacy. Consider an algorithm that analyzes a dataset and releases statistics: The algorithm is differentially private if by looking at the output, you cannot tell whether any individual's data was included in the original dataset or not. Differential privacy achieves this by carefully injecting random noise into the released statistics to hide the effects of each individual.
-  criteria:
-    yes:
+  A:
+    - |
+      Differential privacy is a rigorous mathematical definition of privacy. Consider an algorithm that analyzes a dataset and releases statistics: The algorithm is differentially private if by looking at the output, you cannot tell whether any individual's data was included in the original dataset or not. Differential privacy achieves this by carefully injecting random noise into the released statistics to hide the effects of each individual.
+  evaluation:
+    true:
       - Does the answer mention the rigorous mathematical definition of differential privacy?
       - Does the answer describe adding calibrated noise to statistics?
-    no:
+    false:
       - Does the answer describe anonymizing data by stripping identifiers?

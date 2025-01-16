@@ -7,6 +7,7 @@ import re
 from datetime import datetime
 import subprocess
 import argparse
+import logging
 
 
 def get_config():
@@ -39,7 +40,8 @@ def load_yaml(file_name):
 api_base = "https://go.apis.huit.harvard.edu/ais-openai-direct-limited-schools/v1"
 
 
-def ask(question, model, temperature):
+def ask_one_question(question, model, temperature):
+    logging.info(f"Q: {question}")
     headers = {
         "Content-Type": "application/json",
         "api-key": get_key(),
@@ -51,15 +53,40 @@ def ask(question, model, temperature):
             "temperature": temperature,
         }
     )
+    start_time = datetime.now()
     response = requests.request(
         method="POST",
         url=f"{api_base}/chat/completions",
         headers=headers,
         data=payload,
     )
+    end_time = datetime.now()
     response.raise_for_status()
     answers = [choice["message"]["content"] for choice in response.json()["choices"]]
-    return answers
+    for answer in answers:
+        logging.info(f"A: {answer}")
+    return answers, (end_time - start_time)
+
+
+def ask_evaluation(question, answer, evaluation):
+    # For the evaluation, we want boring, reliable answers,
+    # even as we change the parameters for the primary query.
+    # Might surface these as a separate config at some point.
+    model = "gpt-4o-mini"
+    temperature = 0
+    question_answer_evaluation = f"""First, read the following question and answer pair:
+
+Question: {question}
+
+Answer:
+'''
+{answer}
+'''
+
+Considering the response above, answer the following question with "yes" or "no":
+{evaluation}
+"""
+    return ask_one_question(question_answer_evaluation, model, temperature)
 
 
 def ask_all_questions(config):
@@ -67,16 +94,45 @@ def ask_all_questions(config):
     q_and_a_out = []
     for q_a in q_and_a_in:
         question = q_a["Q"]
-        human_answer = q_a["A"]
-        start_time = datetime.now()
-        llm_answers = ask(question, **config)
-        end_time = datetime.now()
+        human_answers = q_a["A"]
+        human_answers_evaluation = []
+        for answer in human_answers:
+            breakpoint()
+            evaluation_true = q_a["evaluation"][True]
+            for evaluation in evaluation_true:
+                response, _runtime = ask_evaluation(question, answer, evaluation)
+                human_answers_evaluation.append(
+                    {"evalution": evaluation, "expected": True, "actual": response}
+                )
+            evaluation_false = q_a["evaluation"][False]
+            for evaluation in evaluation_false:
+                response, _runtime = ask_evaluation(question, answer, evaluation)
+                human_answers_evaluation.append(
+                    {"evalution": evaluation, "expected": False, "actual": response}
+                )
+
+        llm_answers, runtime = ask_one_question(question, **config)
+        llm_answers_evaluation = []
+        for answer in llm_answers:
+            evaluation_true = q_a["evaluation"][True]
+            for evaluation in evaluation_true:
+                response, _runtime = ask_evaluation(question, answer, evaluation)
+                llm_answers_evaluation.append(
+                    {"evalution": evaluation, "expected": True, "actual": response}
+                )
+            evaluation_false = q_a["evaluation"][False]
+            for evaluation in evaluation_false:
+                response, _runtime = ask_evaluation(question, answer, evaluation)
+                llm_answers_evaluation.append(
+                    {"evalution": evaluation, "expected": False, "actual": response}
+                )
+
         q_and_a_out.append(
             {
                 "question": question,
-                "human_answer": human_answer,
-                "llm_answers": llm_answers,
-                "runtime": str(end_time - start_time),
+                "human_answers": human_answers_evaluation,
+                "llm_answers": llm_answers_evaluation,
+                "runtime": str(runtime),
             }
         )
     return q_and_a_out
@@ -89,13 +145,13 @@ def save_results(datetime_now, results):
         allow_unicode=True,
         default_flow_style=False,
     )
-    print(yaml_out)
     timestamp = re.sub(r"\..*", "", datetime_now).replace(":", "-")
     out_path = Path(__file__).parent / "outputs" / f"{timestamp}.yaml"
     out_path.write_text(yaml_out)
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
     config = get_config()
     datetime_now = datetime.now().isoformat()
     metadata = {

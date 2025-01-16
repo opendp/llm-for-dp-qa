@@ -1,0 +1,37 @@
+metadata:
+  config:
+    model: gpt-4o-mini
+    temperature: 0
+  datetime: '2025-01-16T17:42:52.450949'
+  git_hash: 550587f
+q_and_a:
+- question: In a few words, what is differential privacy?
+  human_answers:
+  - evalution: Does the answer mention the rigorous mathematical definition of differential
+      privacy?
+    expected: true
+    actual:
+    - 'Yes'
+  - evalution: Does the answer describe adding calibrated noise to statistics?
+    expected: true
+    actual:
+    - Yes.
+  - evalution: Does the answer describe anonymizing data by stripping identifiers?
+    expected: false
+    actual:
+    - 'No'
+  llm_answers:
+  - evalution: Does the answer mention the rigorous mathematical definition of differential
+      privacy?
+    expected: true
+    actual:
+    - 'No'
+  - evalution: Does the answer describe adding calibrated noise to statistics?
+    expected: true
+    actual:
+    - Yes.
+  - evalution: Does the answer describe anonymizing data by stripping identifiers?
+    expected: false
+    actual:
+    - 'No'
+  runtime: '0:00:01.043781'
