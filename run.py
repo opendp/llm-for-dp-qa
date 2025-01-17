@@ -92,7 +92,7 @@ Answer:
 {answer}
 '''
 
-Considering the response above, answer the following question with "yes" or "no":
+Considering the response above, answer the following question with "True" or "False":
 {evaluation}
 """
     return ask_one_question(
@@ -151,6 +151,18 @@ def ask_all_questions(config):
     return q_and_a_out
 
 
+def get_scores(q_and_a):
+    scores = {}
+    for human_llm in q_and_a:
+        for agent in ["human", "llm"]:
+            evaluations = human_llm[agent].values()
+            flat_list = [e for e_list in evaluations for e in e_list]
+            total = len(flat_list)
+            correct = sum(1 for e in flat_list if e["expected"] == e["actual"])
+            scores[agent] = f"{correct} / {total}"
+    return scores
+
+
 def save_results(datetime_now, results):
     yaml_out = dump(
         results,
@@ -173,5 +185,6 @@ if __name__ == "__main__":
         "git_hash": get_git_hash(),
     }
     q_and_a = ask_all_questions(config)
-    results = {"metadata": metadata, "q_and_a": q_and_a}
+    scores = get_scores(q_and_a)
+    results = {"metadata": metadata, "scores": scores, "q_and_a": q_and_a}
     save_results(datetime_now, results)
