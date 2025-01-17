@@ -59,7 +59,7 @@ def ask_one_question(question, model, temperature, system, is_evaluation=False):
     # > You tried to pass a `BaseModel` class to `chat.completions.create()`;
     # > You must use `beta.chat.completions.parse()` instead
     completions = client.beta.chat.completions.parse(
-        messages=messages,
+        messages=messages,  # type: ignore
         model=model,
         temperature=temperature,
         response_format=Evaluation if is_evaluation else NOT_GIVEN,
@@ -71,7 +71,9 @@ def ask_one_question(question, model, temperature, system, is_evaluation=False):
         logging.info(f"A: {answer}")
     if is_evaluation:
         answers = [
-            json.loads(answer)["answer_satisfies_criteria"] for answer in answers
+            json.loads(answer)["answer_satisfies_criteria"]
+            for answer in answers
+            if answer
         ][0]
     return answers, (end_time - start_time)
 
