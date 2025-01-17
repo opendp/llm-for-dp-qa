@@ -14,11 +14,9 @@ def get_config():
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", default="gpt-4o-mini")
     parser.add_argument("--temperature", type=float, default=0)
+    parser.add_argument("--pre", default="")
     args = parser.parse_args()
-    return {
-        "model": args.model,
-        "temperature": args.temperature,
-    }
+    return {"model": args.model, "temperature": args.temperature, "pre": args.pre}
 
 
 def get_git_hash():
@@ -40,7 +38,7 @@ def load_yaml(file_name):
 api_base = "https://go.apis.huit.harvard.edu/ais-openai-direct-limited-schools/v1"
 
 
-def ask_one_question(question, model, temperature):
+def ask_one_question(question, model, temperature, pre):
     logging.info(f"Q: {question}")
     headers = {
         "Content-Type": "application/json",
@@ -49,7 +47,7 @@ def ask_one_question(question, model, temperature):
     payload = json.dumps(
         {
             "model": model,
-            "messages": [{"role": "user", "content": question}],
+            "messages": [{"role": "user", "content": f"{pre}\n{question}"}],
             "temperature": temperature,
         }
     )
@@ -74,6 +72,7 @@ def ask_evaluation(question, answer, evaluation):
     # Might surface these as a separate config at some point.
     model = "gpt-4o-mini"
     temperature = 0
+    pre = ""
     question_answer_evaluation = f"""First, read the following question and answer pair:
 
 Question: {question}
@@ -86,10 +85,10 @@ Answer:
 Considering the response above, answer the following question with "yes" or "no":
 {evaluation}
 """
-    return ask_one_question(question_answer_evaluation, model, temperature)
+    return ask_one_question(question_answer_evaluation, model, temperature, pre)
 
 
-def evaluate(question, answer, evaluations_in):
+def evaluate_one_answer(question, answer, evaluations_in):
     evaluations_out = []
     for expected in [True, False]:
         for evaluation in evaluations_in[expected]:
@@ -104,29 +103,36 @@ def evaluate(question, answer, evaluations_in):
     return evaluations_out
 
 
+def evaluate_all_answers(question, answers, evaluation_questions):
+    evaluation_answers = {}
+    for answer in answers:
+        evaluation = evaluate_one_answer(question, answer, evaluation_questions)
+        evaluation_answers[answer] = evaluation
+    return evaluation_answers
+
+
 def ask_all_questions(config):
     q_and_a_in = load_yaml("q-and-a.yaml")
     q_and_a_out = []
     for q_a in q_and_a_in:
         question = q_a["Q"]
+        evaluations = q_a["evaluations"]
 
         human_answers = q_a["A"]
-        human_answers_evaluation = {}
-        for answer in human_answers:
-            evaluation = evaluate(question, answer, q_a["evaluations"])
-            human_answers_evaluation[answer] = evaluation
+        human_answers_evaluations = evaluate_all_answers(
+            question, human_answers, evaluations
+        )
 
         llm_answers, runtime = ask_one_question(question, **config)
-        llm_answers_evaluation = {}
-        for answer in llm_answers:
-            evaluation = evaluate(question, answer, q_a["evaluations"])
-            llm_answers_evaluation[answer] = evaluation
+        llm_answers_evaluations = evaluate_all_answers(
+            question, llm_answers, evaluations
+        )
 
         q_and_a_out.append(
             {
                 "question": question,
-                "human": human_answers_evaluation,
-                "llm": llm_answers_evaluation,
+                "human": human_answers_evaluations,
+                "llm": llm_answers_evaluations,
                 "runtime": str(runtime),
             }
         )
