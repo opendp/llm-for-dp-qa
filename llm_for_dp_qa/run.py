@@ -9,6 +9,7 @@ import logging
 from openai import OpenAI, NOT_GIVEN
 from pydantic import BaseModel
 import json
+from collections import defaultdict
 
 
 def get_config():
@@ -105,7 +106,7 @@ Considering the response above, answer the following question with "True" or "Fa
 def evaluate_one_answer(question, answer, evaluations_in):
     evaluations_out = []
     for expected in [True, False]:
-        for evaluation in evaluations_in[expected]:
+        for evaluation in evaluations_in.get(expected, []):
             actual, _runtime = ask_evaluation(question, answer, evaluation)
             evaluations_out.append(
                 {
@@ -154,15 +155,16 @@ def ask_all_questions(config):
 
 
 def get_scores(q_and_a):
-    scores = {}
+    correct = defaultdict(int)
+    total = defaultdict(int)
     for human_llm in q_and_a:
         for agent in ["human", "llm"]:
             evaluations = human_llm[agent].values()
             flat_list = [e for e_list in evaluations for e in e_list]
-            total = len(flat_list)
-            correct = sum(1 for e in flat_list if e["expected"] == e["actual"])
-            scores[agent] = f"{correct} / {total}"
-    return scores
+            total[agent] += len(flat_list)
+            correct[agent] += sum(1 for e in flat_list if e["expected"] == e["actual"])
+
+    return {agent: f"{correct[agent]} / {total[agent]}" for agent in ["human", "llm"]}
 
 
 def save_results(datetime_now, results):
