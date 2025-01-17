@@ -1,22 +1,25 @@
 #!/usr/bin/env python3
 from yaml import safe_load, dump
-import requests
 from pathlib import Path
-import json
 import re
 from datetime import datetime
 import subprocess
 import argparse
 import logging
+from openai import OpenAI
 
 
 def get_config():
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", default="gpt-4o-mini")
     parser.add_argument("--temperature", type=float, default=0)
-    parser.add_argument("--pre", default="")
+    parser.add_argument("--system")
     args = parser.parse_args()
-    return {"model": args.model, "temperature": args.temperature, "pre": args.pre}
+    return {
+        "model": args.model,
+        "temperature": args.temperature,
+        "system": args.system,
+    }
 
 
 def get_git_hash():
@@ -35,32 +38,25 @@ def load_yaml(file_name):
     return safe_load((Path(__file__).parent / file_name).open())
 
 
-api_base = "https://go.apis.huit.harvard.edu/ais-openai-direct-limited-schools/v1"
-
-
-def ask_one_question(question, model, temperature, pre):
+def ask_one_question(question, model, temperature, system):
     logging.info(f"Q: {question}")
-    headers = {
-        "Content-Type": "application/json",
-        "api-key": get_key(),
-    }
-    payload = json.dumps(
-        {
-            "model": model,
-            "messages": [{"role": "user", "content": f"{pre}\n{question}"}],
-            "temperature": temperature,
-        }
-    )
+
     start_time = datetime.now()
-    response = requests.request(
-        method="POST",
-        url=f"{api_base}/chat/completions",
-        headers=headers,
-        data=payload,
+    client = OpenAI(
+        base_url="https://go.apis.huit.harvard.edu/ais-openai-direct-limited-schools/v1",
+        api_key=get_key(),
+    )
+    messages = [{"role": "user", "content": question}]
+    if system:
+        messages.append({"role": "system", "content": system})
+    completions = client.chat.completions.create(
+        messages=messages,
+        model=model,
+        temperature=temperature,
     )
     end_time = datetime.now()
-    response.raise_for_status()
-    answers = [choice["message"]["content"] for choice in response.json()["choices"]]
+
+    answers = [choice.message.content for choice in completions.choices]
     for answer in answers:
         logging.info(f"A: {answer}")
     return answers, (end_time - start_time)
@@ -72,7 +68,7 @@ def ask_evaluation(question, answer, evaluation):
     # Might surface these as a separate config at some point.
     model = "gpt-4o-mini"
     temperature = 0
-    pre = ""
+    system = None
     question_answer_evaluation = f"""First, read the following question and answer pair:
 
 Question: {question}
@@ -85,7 +81,7 @@ Answer:
 Considering the response above, answer the following question with "yes" or "no":
 {evaluation}
 """
-    return ask_one_question(question_answer_evaluation, model, temperature, pre)
+    return ask_one_question(question_answer_evaluation, model, temperature, system)
 
 
 def evaluate_one_answer(question, answer, evaluations_in):

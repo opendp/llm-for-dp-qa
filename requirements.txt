@@ -1,6 +1,6 @@
 pyyaml
-requests
 pre-commit
 flake8
 flake8-bugbear
 black
+openai
