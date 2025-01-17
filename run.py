@@ -6,7 +6,9 @@ from datetime import datetime
 import subprocess
 import argparse
 import logging
-from openai import OpenAI
+from openai import OpenAI, NOT_GIVEN
+from pydantic import BaseModel
+import json
 
 
 def get_config():
@@ -38,7 +40,11 @@ def load_yaml(file_name):
     return safe_load((Path(__file__).parent / file_name).open())
 
 
-def ask_one_question(question, model, temperature, system):
+class Evaluation(BaseModel):
+    answer_satisfies_criteria: bool
+
+
+def ask_one_question(question, model, temperature, system, is_evaluation=False):
     logging.info(f"Q: {question}")
 
     start_time = datetime.now()
@@ -49,16 +55,24 @@ def ask_one_question(question, model, temperature, system):
     messages = [{"role": "user", "content": question}]
     if system:
         messages.append({"role": "system", "content": system})
-    completions = client.chat.completions.create(
+    # Trying to use "client.chat.completions.create" produced an error:
+    # > You tried to pass a `BaseModel` class to `chat.completions.create()`;
+    # > You must use `beta.chat.completions.parse()` instead
+    completions = client.beta.chat.completions.parse(
         messages=messages,
         model=model,
         temperature=temperature,
+        response_format=Evaluation if is_evaluation else NOT_GIVEN,
     )
     end_time = datetime.now()
 
     answers = [choice.message.content for choice in completions.choices]
     for answer in answers:
         logging.info(f"A: {answer}")
+    if is_evaluation:
+        answers = [
+            json.loads(answer)["answer_satisfies_criteria"] for answer in answers
+        ][0]
     return answers, (end_time - start_time)
 
 
@@ -81,7 +95,9 @@ Answer:
 Considering the response above, answer the following question with "yes" or "no":
 {evaluation}
 """
-    return ask_one_question(question_answer_evaluation, model, temperature, system)
+    return ask_one_question(
+        question_answer_evaluation, model, temperature, system, is_evaluation=True
+    )
 
 
 def evaluate_one_answer(question, answer, evaluations_in):
