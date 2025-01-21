@@ -1,0 +1,30 @@
+-
+  Q: In a few words, what is differential privacy?
+  A:
+    - |
+      Differential privacy is a rigorous mathematical definition of privacy. Consider an algorithm that analyzes a dataset and releases statistics: The algorithm is differentially private if by looking at the output, you cannot tell whether any individual's data was included in the original dataset or not. Differential privacy achieves this by carefully injecting random noise into the released statistics to hide the effects of each individual.
+  evaluations:
+    true:
+      - Does the answer mention the rigorous mathematical definition of differential privacy?
+      - Does the answer describe adding calibrated noise to statistics?
+    false:
+      - Does the answer describe anonymizing data by stripping identifiers?
+-
+  # OpenDP slack, #random channel, August 9, 2024
+  # https://opendp.slack.com/archives/C02L4CMC1LZ/p1723183400008439
+  # Tweaked question from Apigail Gentle:
+  Q: |
+    I have a question about the Bernoulli sampler used in OpenDP. I have been working on implementing a the same idea for another language, and was using the implementation in OpenDP as a reference, and I noticed something about line 120:
+    ```
+    i if i == leading_zeros => !prob.raw_exponent().is_zero()
+    ```
+    This is the case where Geo(1/2)=leading_zeros, given that we are dealing with valid probabilities in (0,1), this line will only ever return false for subnormal floats, but for some subnormal floats, such as the floatmin(Float64), this changes their probability from minuscule to 0. I've also seen that the largest subnormal (2^-1022)(1-2^-52), has probability 1.11e-308 of returning true in the current state versus 2.225e-308 (which is closer to its real value) if this line was just "return true". Now I don't think this change should be made, because it biases subnormals slightly more towards true , which seems worse than undershooting, but I was curious to know if there's a better way to handle the subnormal case in my version.
+  A:
+    # Tweaked response from Zachary Ratliff:
+    - |
+      I'm not quite following why for FloatMin(float64) this implementation always returns false. For such subnormals, there is some (small) probability that first_heads_index lands in the part of the binary expansion represented by the mantissa bits (line 124). In particular, line 120 is considering the case that first_heads_index lands on the bit in the binary expansion that is represented by the implicit bit, but I think I'm missing how this biases the probability to always be 0
+  evaluations:
+    true:
+      - Does the answer reflect some confusion about the question?
+      - Does the answer mention that there is some (small) probability that first_heads_index lands in the part of the binary expansion represented by the mantissa bits?
+      - Does the answer point out that line 120 is considering the case that first_heads_index lands on the bit in the binary expansion that is represented by the implicit bit?

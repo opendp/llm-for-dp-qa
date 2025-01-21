@@ -1,0 +1,8 @@
+pyyaml
+pre-commit
+flake8
+flake8-bugbear
+black
+openai
+pytest
+pyright

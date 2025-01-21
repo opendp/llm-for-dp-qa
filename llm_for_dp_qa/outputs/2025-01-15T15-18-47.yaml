@@ -1,0 +1,62 @@
+- q: What is differential privacy?
+  a:
+  - 'Differential privacy is a mathematical framework designed to provide a formal
+    definition of privacy protection when analyzing and sharing data. The core idea
+    is to ensure that the inclusion or exclusion of a single individual''s data in
+    a dataset does not significantly affect the outcome of any analysis performed
+    on that dataset. This means that the results of queries or analyses conducted
+    on the data should be similar, whether or not any particular individual''s data
+    is included.
+
+
+    ### Key Concepts:
+
+
+    1. **Privacy Budget (ε)**: Differential privacy uses a parameter known as epsilon
+    (ε), which quantifies the level of privacy protection. A smaller ε indicates stronger
+    privacy guarantees, while a larger ε allows for more accurate data analysis but
+    weaker privacy.
+
+
+    2. **Noise Addition**: To achieve differential privacy, noise is typically added
+    to the results of queries on the data. This noise is often drawn from a mathematical
+    distribution (like Laplace or Gaussian) and is calibrated based on the sensitivity
+    of the query—how much the output can change with the addition or removal of a
+    single individual''s data.
+
+
+    3. **Sensitivity**: The sensitivity of a function is a measure of how much the
+    function''s output can change when a single individual''s data is added or removed.
+    Functions with lower sensitivity are generally easier to protect with differential
+    privacy.
+
+
+    4. **Indistinguishability**: The fundamental goal of differential privacy is to
+    make it difficult for an observer to determine whether any particular individual''s
+    data was included in the analysis, thus protecting individual privacy.
+
+
+    ### Applications:
+
+
+    Differential privacy has been adopted in various fields, including:
+
+
+    - **Statistics and Data Analysis**: To release aggregate statistics without compromising
+    individual privacy.
+
+    - **Machine Learning**: To train models on sensitive datasets while protecting
+    the privacy of the training data.
+
+    - **Public Data Releases**: Governments and organizations use differential privacy
+    to release census data or other sensitive information while maintaining the confidentiality
+    of individuals.
+
+
+    ### Conclusion:
+
+
+    Differential privacy provides a robust framework for balancing the needs for data
+    utility and individual privacy. By carefully managing the trade-offs between accuracy
+    and privacy, it allows organizations to analyze and share data without exposing
+    sensitive information about individuals.'

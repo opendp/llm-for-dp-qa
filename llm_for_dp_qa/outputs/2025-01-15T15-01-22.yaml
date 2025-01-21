@@ -1,0 +1,29 @@
+- a:
+  - "Differential privacy is a mathematical framework designed to provide privacy\
+    \ guarantees when analyzing and sharing data. It aims to protect individual privacy\
+    \ while allowing for useful insights to be drawn from datasets. The key idea is\
+    \ to ensure that the output of a data analysis algorithm does not significantly\
+    \ depend on any single individual's data, making it difficult to infer whether\
+    \ any specific individual's information was included in the dataset.\n\nHere are\
+    \ the main concepts behind differential privacy:\n\n1. **Noise Addition**: To\
+    \ achieve differential privacy, random noise is added to the results of queries\
+    \ on the dataset. This noise is calibrated based on the sensitivity of the query,\
+    \ which measures how much the output could change if a single individual's data\
+    \ were included or excluded.\n\n2. **Privacy Parameter (\u03B5)**: Differential\
+    \ privacy is often quantified using a parameter \u03B5 (epsilon), which controls\
+    \ the trade-off between privacy and accuracy. A smaller \u03B5 provides stronger\
+    \ privacy guarantees but can result in less accurate results, while a larger \u03B5\
+    \ allows for more accurate results at the expense of privacy.\n\n3. **Indistinguishability**:\
+    \ The core principle of differential privacy is that an observer should not be\
+    \ able to determine whether a particular individual's data was included in the\
+    \ dataset based on the output of the analysis. This is achieved by ensuring that\
+    \ the outputs of the algorithm are statistically indistinguishable whether or\
+    \ not the individual's data is included.\n\n4. **Robustness**: Differential privacy\
+    \ provides a robust framework that can be applied to various types of data analysis,\
+    \ including statistical queries, machine learning, and data sharing.\n\nDifferential\
+    \ privacy has gained significant attention and adoption in various fields, including\
+    \ healthcare, social sciences, and technology companies, particularly for protecting\
+    \ user data in applications like Apple and Google.\n\nOverall, differential privacy\
+    \ strikes a balance between the utility of data analysis and the need to protect\
+    \ individual privacy, making it a powerful tool in the era of big data."
+  q: What is differential privacy?

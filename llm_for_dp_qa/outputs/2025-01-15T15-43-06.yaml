@@ -1,0 +1,13 @@
+metadata:
+  config:
+    model: gpt-4o-mini
+    temperature: 0.7
+  git_hash: 1219e73
+  datetime: '2025-01-15T15:43:06.734594'
+q_and_a:
+- q: In a few words, what is differential privacy?
+  a:
+  - Differential privacy is a technique used to ensure that the output of a database
+    query does not reveal too much information about any individual record in the
+    database, thereby protecting individual privacy while still allowing for useful
+    data analysis.
