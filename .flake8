@@ -6,7 +6,3 @@ exclude = .git,.venv,__pycache__
 max-line-length = 80
 extend-select = B950
 extend-ignore = E203,E501,E701
-
-; per-file-ignores =
-;     # Ignore undefined names in templates.
-;     */code_generators/no-tests/*.py:F821,F401,E302
